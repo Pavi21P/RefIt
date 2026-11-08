@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% load static %}
+{% block content %}
+<nav class="demo-topnav" aria-label="Gallery navigation"><a class="active" href="#collection">The collection</a><a href="{% url 'signup' %}">Your library</a><a href="#about">About RefIt</a></nav>
+<main id="main" class="demo-main">
+  <div class="demo-heading"><div><p class="eyebrow">A reference library, made personal</p><h1>Keep what catches your eye.</h1><p>Images to study. Details to return to. A little room for inspiration.</p></div><div class="demo-actions"><a class="primary-button" href="{% url 'signup' %}">{% include 'partials/icon.html' with name='plus' %}Start your library</a><small>Already collecting? <a href="{% url 'login' %}">Log in</a></small></div></div>
+  <div class="masonry" id="collection" aria-label="Sample collection of public-domain art">
+  {% for artwork in artworks %}<article class="reference-card"><a class="image-wrap image-link" href="{{ artwork.source }}" target="_blank" rel="noopener noreferrer" aria-label="View {{ artwork.title }} at the Art Institute of Chicago"><img src="{% static artwork.path %}" alt="{{ artwork.title }} by {{ artwork.artist|default:'Unknown artist' }}" loading="{% if forloop.counter < 5 %}eager{% else %}lazy{% endif %}"></a><div class="card-caption"><a href="{{ artwork.source }}" target="_blank" rel="noopener noreferrer">{{ artwork.title }}</a></div><div class="card-tags"><span>{{ artwork.artist|default:'Unknown artist' }}</span></div></article>{% endfor %}
+  </div>
+  <footer class="demo-note" id="about"><span>A sample collection · Public-domain images courtesy of the Art Institute of Chicago</span><span>Your own library starts empty, and stays private.</span></footer>
+  <p class="about-copy">RefIt is a place to save art references in named folders, find them with your own tags, and return to them from your account. Upload a file, drag it in, or paste an image. Choose light or dark mode to suit your workspace.</p>
+</main>{% endblock %}

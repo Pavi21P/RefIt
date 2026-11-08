@@ -1,5 +1,6 @@
-from django.urls import path
 from django.contrib.auth import views as auth
+from django.urls import path
+
 from gallery import views
 
 urlpatterns = [
@@ -7,7 +8,11 @@ urlpatterns = [
     path("accounts/signup/", views.signup, name="signup"),
     path("accounts/login/", auth.LoginView.as_view(template_name="registration/login.html"), name="login"),
     path("accounts/logout/", auth.LogoutView.as_view(), name="logout"),
-    path("accounts/password/", auth.PasswordChangeView.as_view(template_name="registration/password.html", success_url="/"), name="password_change"),
+    path(
+        "accounts/password/",
+        auth.PasswordChangeView.as_view(template_name="registration/password.html", success_url="/"),
+        name="password_change",
+    ),
     path("folders/", views.folder_create, name="folder_create"),
     path("folders/<int:pk>/", views.folder_edit, name="folder_edit"),
     path("tags/", views.tag_create, name="tag_create"),

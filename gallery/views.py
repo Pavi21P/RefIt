@@ -1,23 +1,33 @@
+import json
+from functools import lru_cache
 from pathlib import Path
 from uuid import uuid4
+
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
-from django.db import transaction, IntegrityError
+from django.db import transaction
 from django.db.models import Count, Q, Sum
 from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
 from .forms import ReferenceForm, SignupForm, parse_tags
 from .imaging import inspect_image
 from .models import Folder, Reference, Tag
 
+
+@lru_cache(maxsize=1)
+def sample_art():
+    return json.loads(Path(__file__).with_name("sample_art.json").read_text(encoding="utf-8-sig"))
+
+
 def gallery(request):
     if not request.user.is_authenticated:
-        return render(request, "gallery/demo.html")
+        return render(request, "gallery/demo.html", {"artworks": sample_art()})
     owner = request.user
     view = request.GET.get("view", "all")
     if view not in ("all", "favorites", "unfiled", "trash"):
@@ -38,7 +48,9 @@ def gallery(request):
     if query.startswith("#"):
         images = images.filter(tags__name__iexact=query[1:])
     elif query:
-        images = images.filter(Q(title__icontains=query) | Q(tags__name__icontains=query) | Q(notes__icontains=query))
+        images = images.filter(
+            Q(title__icontains=query) | Q(tags__name__icontains=query) | Q(notes__icontains=query)
+        )
     tag = request.GET.get("tag", "")[:40]
     if tag:
         images = images.filter(tags__name=tag)
@@ -49,17 +61,36 @@ def gallery(request):
     base = Reference.objects.filter(owner=owner, trashed=False)
     params = request.GET.copy()
     params.pop("page", None)
-    return render(request, "gallery/index.html", {
-        "page": page, "folders": Folder.objects.filter(owner=owner).annotate(total=Count("images", filter=Q(images__trashed=False))),
-        "tags": Tag.objects.filter(owner=owner).annotate(total=Count("images", filter=Q(images__trashed=False))),
-        "selected_folder": selected_folder, "view": view, "query": query, "tag": tag, "sort": sort,
-        "heading": selected_folder.name if selected_folder else {"all": "All references", "favorites": "Favorites", "unfiled": "Unfiled", "trash": "Trash"}[view],
-        "total": base.count(), "favorite_count": base.filter(favorite=True).count(),
-        "unfiled_count": base.filter(folder__isnull=True).count(),
-        "trash_count": Reference.objects.filter(owner=owner, trashed=True).count(),
-        "storage": Reference.objects.filter(owner=owner).aggregate(total=Sum("size"))["total"] or 0,
-        "pagination_query": params.urlencode(),
-    })
+    return render(
+        request,
+        "gallery/index.html",
+        {
+            "page": page,
+            "folders": Folder.objects.filter(owner=owner).annotate(
+                total=Count("images", filter=Q(images__trashed=False))
+            ),
+            "tags": Tag.objects.filter(owner=owner).annotate(
+                total=Count("images", filter=Q(images__trashed=False))
+            ),
+            "selected_folder": selected_folder,
+            "view": view,
+            "query": query,
+            "tag": tag,
+            "sort": sort,
+            "heading": selected_folder.name
+            if selected_folder
+            else {"all": "All references", "favorites": "Favorites", "unfiled": "Unfiled", "trash": "Trash"}[
+                view
+            ],
+            "total": base.count(),
+            "favorite_count": base.filter(favorite=True).count(),
+            "unfiled_count": base.filter(folder__isnull=True).count(),
+            "trash_count": Reference.objects.filter(owner=owner, trashed=True).count(),
+            "storage": Reference.objects.filter(owner=owner).aggregate(total=Sum("size"))["total"] or 0,
+            "pagination_query": params.urlencode(),
+        },
+    )
+
 
 def signup(request):
     if request.user.is_authenticated:
@@ -72,6 +103,7 @@ def signup(request):
         return redirect("gallery")
     return render(request, "registration/signup.html", {"form": form})
 
+
 @login_required
 @require_POST
 def folder_create(request):
@@ -83,6 +115,7 @@ def folder_create(request):
     if not created:
         messages.info(request, "That folder already exists.")
     return redirect(f"/?folder={folder.pk}")
+
 
 @login_required
 @require_POST
@@ -102,6 +135,7 @@ def folder_edit(request, pk):
         folder.save(update_fields=["name"])
     return redirect(f"/?folder={folder.pk}")
 
+
 @login_required
 @require_POST
 def tag_create(request):
@@ -115,6 +149,7 @@ def tag_create(request):
     except ValidationError as exc:
         messages.error(request, exc.messages[0])
     return redirect("gallery")
+
 
 @login_required
 @require_POST
@@ -133,25 +168,42 @@ def upload(request):
         info = inspect_image(file)
     except ValidationError as exc:
         return JsonResponse({"error": exc.messages[0]}, status=400)
-    reference = Reference(owner=request.user, folder=folder, title=Path(file.name).stem[:180] or "Untitled reference",
-                          size=file.size, width=info["width"], height=info["height"], mime_type=info["mime_type"])
+    reference = Reference(
+        owner=request.user,
+        folder=folder,
+        title=Path(file.name).stem[:180] or "Untitled reference",
+        size=file.size,
+        width=info["width"],
+        height=info["height"],
+        mime_type=info["mime_type"],
+    )
     try:
         # Storage writes are not transactional; remove new files if the DB write fails.
         reference.original.save(f"{uuid4().hex}.{info['extension']}", file, save=False)
         reference.thumbnail.save(f"{uuid4().hex}.webp", ContentFile(info["thumbnail"]), save=False)
         with transaction.atomic():
             reference.save()
-            reference.tags.set([Tag.objects.get_or_create(owner=request.user, name=name)[0] for name in names])
+            reference.tags.set(
+                [Tag.objects.get_or_create(owner=request.user, name=name)[0] for name in names]
+            )
     except Exception:
         reference.original.delete(save=False)
         reference.thumbnail.delete(save=False)
         raise
     return JsonResponse({"id": str(reference.pk), "title": reference.title}, status=201)
 
+
 @login_required
 def detail(request, pk):
-    reference = get_object_or_404(Reference.objects.prefetch_related("tags").select_related("folder"), pk=pk, owner=request.user)
-    return render(request, "gallery/detail.html", {"reference": reference, "form": ReferenceForm(instance=reference, owner=request.user)})
+    reference = get_object_or_404(
+        Reference.objects.prefetch_related("tags").select_related("folder"), pk=pk, owner=request.user
+    )
+    return render(
+        request,
+        "gallery/detail.html",
+        {"reference": reference, "form": ReferenceForm(instance=reference, owner=request.user)},
+    )
+
 
 @login_required
 @require_POST
@@ -161,10 +213,16 @@ def image_edit(request, pk):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-            reference.tags.set([Tag.objects.get_or_create(owner=request.user, name=name)[0] for name in form.cleaned_data["tag_names"]])
+            reference.tags.set(
+                [
+                    Tag.objects.get_or_create(owner=request.user, name=name)[0]
+                    for name in form.cleaned_data["tag_names"]
+                ]
+            )
         messages.success(request, "Reference updated.")
         return redirect("detail", pk=pk)
     return render(request, "gallery/detail.html", {"reference": reference, "form": form}, status=400)
+
 
 @login_required
 @require_POST
@@ -186,20 +244,27 @@ def image_state(request, pk):
         return redirect("gallery")
     return redirect("detail", pk=pk)
 
+
 @login_required
 def image_file(request, pk, variant):
     reference = get_object_or_404(Reference, pk=pk, owner=request.user)
     if variant not in ("original", "thumbnail", "download"):
         from django.http import Http404
+
         raise Http404
     field = reference.thumbnail if variant == "thumbnail" else reference.original
     try:
         stream = field.open("rb")
     except FileNotFoundError:
         from django.http import Http404
+
         raise Http404("Image file is missing from storage.")
-    response = FileResponse(stream, content_type="image/webp" if variant == "thumbnail" else reference.mime_type,
-                            as_attachment=variant == "download", filename=reference.title + Path(field.name).suffix)
+    response = FileResponse(
+        stream,
+        content_type="image/webp" if variant == "thumbnail" else reference.mime_type,
+        as_attachment=variant == "download",
+        filename=reference.title + Path(field.name).suffix,
+    )
     response["Cache-Control"] = "private, no-store"
     response["X-Content-Type-Options"] = "nosniff"
     return response

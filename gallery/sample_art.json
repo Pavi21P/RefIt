@@ -1,0 +1,74 @@
+[
+    {
+        "id":  28560,
+        "image_url":  "https://www.artic.edu/iiif/2/6644829f-f292-c5c4-a73c-0356a6fdbf0d/full/600,/0/default.jpg",
+        "artist":  "Vincent van Gogh",
+        "source":  "https://www.artic.edu/artworks/28560",
+        "path":  "studies/28560.jpg",
+        "title":  "The Bedroom",
+        "license":  "CC0"
+    },
+    {
+        "id":  85573,
+        "image_url":  "https://www.artic.edu/iiif/2/01581f97-5564-995c-7b34-c53c03b62e6a/full/600,/0/default.jpg",
+        "artist":  null,
+        "source":  "https://www.artic.edu/artworks/85573",
+        "path":  "studies/85573.jpg",
+        "title":  "Right Hand Holding Drawing Implement",
+        "license":  "CC0"
+    },
+    {
+        "id":  874,
+        "image_url":  "https://www.artic.edu/iiif/2/3a34f988-f779-2e96-1786-8945b6b9c87d/full/600,/0/default.jpg",
+        "artist":  "Jean Charles Cazin",
+        "source":  "https://www.artic.edu/artworks/874",
+        "path":  "studies/874.jpg",
+        "title":  "Landscape",
+        "license":  "CC0"
+    },
+    {
+        "id":  80607,
+        "image_url":  "https://www.artic.edu/iiif/2/47c5bcb8-62ef-e5d7-55e7-f5121f409a30/full/600,/0/default.jpg",
+        "artist":  "Vincent van Gogh",
+        "source":  "https://www.artic.edu/artworks/80607",
+        "path":  "studies/80607.jpg",
+        "title":  "Self-Portrait",
+        "license":  "CC0"
+    },
+    {
+        "id":  66042,
+        "image_url":  "https://www.artic.edu/iiif/2/4a04138f-43d8-cd9f-5ac4-478cd8828210/full/600,/0/default.jpg",
+        "artist":  "Adriaen van der Spelt",
+        "source":  "https://www.artic.edu/artworks/66042",
+        "path":  "studies/66042.jpg",
+        "title":  "Trompe-l\u0027Oeil Still Life with a Flower Garland and a Curtain",
+        "license":  "CC0"
+    },
+    {
+        "id":  29230,
+        "image_url":  "https://www.artic.edu/iiif/2/7582416c-67cd-3682-bf97-5f9883bdd972/full/600,/0/default.jpg",
+        "artist":  "Julia Margaret Cameron",
+        "source":  "https://www.artic.edu/artworks/29230",
+        "path":  "studies/29230.jpg",
+        "title":  "Julia Jackson",
+        "license":  "CC0"
+    },
+    {
+        "id":  16568,
+        "image_url":  "https://www.artic.edu/iiif/2/3c27b499-af56-f0d5-93b5-a7f2f1ad5813/full/600,/0/default.jpg",
+        "artist":  "Claude Monet",
+        "source":  "https://www.artic.edu/artworks/16568",
+        "path":  "studies/16568.jpg",
+        "title":  "Water Lilies",
+        "license":  "CC0"
+    },
+    {
+        "id":  23119,
+        "image_url":  "https://www.artic.edu/iiif/2/1e452e34-3a2b-0dca-35c3-c7236c612985/full/600,/0/default.jpg",
+        "artist":  "Master of the Small Landscapes",
+        "source":  "https://www.artic.edu/artworks/23119",
+        "path":  "studies/23119.jpg",
+        "title":  "Village Among the Trees",
+        "license":  "CC0"
+    }
+]

@@ -1,12 +1,19 @@
 import io
 import warnings
-from PIL import Image, ImageOps, UnidentifiedImageError
+
 from django.core.exceptions import ValidationError
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 Image.MAX_IMAGE_PIXELS = 40_000_000
-FORMATS = {"JPEG": ("jpg", "image/jpeg"), "PNG": ("png", "image/png"),
-           "WEBP": ("webp", "image/webp"), "GIF": ("gif", "image/gif"),
-           "BMP": ("bmp", "image/bmp"), "TIFF": ("tiff", "image/tiff")}
+FORMATS = {
+    "JPEG": ("jpg", "image/jpeg"),
+    "PNG": ("png", "image/png"),
+    "WEBP": ("webp", "image/webp"),
+    "GIF": ("gif", "image/gif"),
+    "BMP": ("bmp", "image/bmp"),
+    "TIFF": ("tiff", "image/tiff"),
+}
+
 
 def inspect_image(upload):
     if upload.size > 25 * 1024 * 1024:
@@ -31,9 +38,21 @@ def inspect_image(upload):
                 background.thumbnail((1200, 1200))
                 output = io.BytesIO()
                 background.save(output, "WEBP", quality=85)
-    except (UnidentifiedImageError, OSError, ValueError, SyntaxError, Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
+    except (
+        UnidentifiedImageError,
+        OSError,
+        ValueError,
+        SyntaxError,
+        Image.DecompressionBombError,
+        Image.DecompressionBombWarning,
+    ) as exc:
         raise ValidationError("This image is damaged, unsupported, or too large to process.") from exc
     finally:
         upload.seek(0)
-    return {"extension": FORMATS[fmt][0], "mime_type": FORMATS[fmt][1], "width": width,
-            "height": height, "thumbnail": output.getvalue()}
+    return {
+        "extension": FORMATS[fmt][0],
+        "mime_type": FORMATS[fmt][1],
+        "width": width,
+        "height": height,
+        "thumbnail": output.getvalue(),
+    }
