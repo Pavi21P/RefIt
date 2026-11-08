@@ -503,7 +503,7 @@ summary {
   break-inside: avoid;
   margin: 0 0 24px;
   min-width: 0;
-  display: inline-block;
+  display: block;
   width: 100%;
 }
 .image-wrap {
@@ -1297,7 +1297,7 @@ input::placeholder {
     padding: 12px 20px;
   }
 }
-@media (max-width: 390px) {
+@media (max-width: 359px) {
   .masonry {
     columns: 1;
   }
