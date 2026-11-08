@@ -1,0 +1,5 @@
+Django>=5.2,<5.3
+Pillow>=11.3,<13
+whitenoise>=6.9,<7
+waitress>=3.0,<4
+django-axes>=8,<9
